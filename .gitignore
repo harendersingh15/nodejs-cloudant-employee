@@ -4,3 +4,6 @@ vcap-local.json
 *.js.map
 /**/*.ts
 /**/*.js.map
+.idea
+typings
+npm-debug.log
