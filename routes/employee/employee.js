@@ -1,30 +1,30 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const waterfall = require("async-waterfall");
 const app_1 = require("../../app");
 const employeeRouter = express_1.Router();
 exports.employeeRouter = employeeRouter;
-employeeRouter.get('/', function (request, response) {
-    var rowData = [];
-    app_1.db.list({ include_docs: true }, function (err, result) {
+employeeRouter.get('/', (request, response) => {
+    let rowData = [];
+    app_1.db.list({ include_docs: true }, (err, result) => {
         if (err) {
             console.log(err);
             response.send('Something happend wrong!!!');
         }
         else {
-            result.rows.forEach(function (item) {
+            result.rows.forEach((item) => {
                 rowData.push(item.doc);
             });
             response.send(rowData);
         }
     });
 });
-employeeRouter.get('/employee/:id', function (req, res) {
-    var id = req.params.id;
-    console.log(id);
+employeeRouter.get('/employee/:id', (req, res) => {
+    let id = req.params.id;
     app_1.db.get(id, {
         revs_info: true
-    }, function (err, doc) {
+    }, (err, doc) => {
         if (!err) {
             res.send(doc);
         }
@@ -33,23 +33,23 @@ employeeRouter.get('/employee/:id', function (req, res) {
         }
     });
 });
-employeeRouter.post('/employee', function (request, response) {
+employeeRouter.post('/employee', (request, response) => {
     console.log('hello new emp');
-    var data = request.body.data || request.body;
-    var emp = {
+    let data = request.body.data || request.body;
+    let emp = {
         'name': data.name,
         'age': data.age,
         'mobile': data.mobile
     };
-    app_1.db.insert(emp, function (err, doc) {
+    app_1.db.insert(emp, (err, doc) => {
         if (err) {
             console.log(err);
             response.status(500).send('some thing happen wrong');
         }
         else {
-            app_1.db.get(doc.id, function (err, data) {
+            app_1.db.get(doc.id, (err, data) => {
                 if (err) {
-                    response.send(err);
+                    response.status(500).send('Something went wrong!!!');
                 }
                 else {
                     response.send(data);
@@ -58,22 +58,35 @@ employeeRouter.post('/employee', function (request, response) {
         }
     });
 });
-employeeRouter.delete('/employee/:id', function (request, response) {
-    var id = request.params.id;
-    app_1.db.get(id, {
-        revs_info: true
-    }, function (err, doc) {
-        if (!err) {
-            app_1.db.destroy(doc._id, doc._rev, function (err, res) {
-                // Handle response
-                if (err) {
-                    console.log(err);
-                    response.sendStatus(500);
+employeeRouter.delete('/employee/:id', (request, response, next) => {
+    let id = request.params.id;
+    waterfall([
+        (next) => {
+            app_1.db.get(id, (error, doc) => {
+                if (error) {
+                    next(error, null);
                 }
                 else {
-                    response.sendStatus(200);
+                    next(null, doc);
                 }
             });
+        },
+        (doc, next) => {
+            app_1.db.destroy(doc._id, doc._rev, (err, res) => {
+                if (err) {
+                    next(err, null);
+                }
+                else {
+                    next(null, res);
+                }
+            });
+        }
+    ], (err, result) => {
+        if (err) {
+            response.status(404).send('Employee not Found');
+        }
+        else {
+            response.sendStatus(200);
         }
     });
 });
