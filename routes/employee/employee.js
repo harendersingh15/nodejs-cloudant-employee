@@ -58,6 +58,48 @@ employeeRouter.post('/employee', (request, response) => {
         }
     });
 });
+employeeRouter.put('/employee/:id', function (request, response, next) {
+    console.log("Update Invoked..");
+    let data = request.body.data || request.body;
+    let id = request.params.id;
+    let name = data.name;
+    let age = data.age;
+    let mobile = data.mobile;
+    waterfall([
+        (next) => {
+            app_1.db.get(id, {
+                revs_info: true
+            }, (error, doc) => {
+                if (error) {
+                    next(error, null);
+                }
+                else {
+                    doc.name = name;
+                    doc.age = age;
+                    doc.mobile = mobile;
+                    next(null, doc);
+                }
+            });
+        },
+        (doc, next) => {
+            app_1.db.insert(doc, doc.id, (err, res) => {
+                if (err) {
+                    next(err, null);
+                }
+                else {
+                    next(null, res);
+                }
+            });
+        }
+    ], (err, result) => {
+        if (err) {
+            response.status(404).send('Employee not Found');
+        }
+        else {
+            response.sendStatus(200);
+        }
+    });
+});
 employeeRouter.delete('/employee/:id', (request, response, next) => {
     let id = request.params.id;
     waterfall([

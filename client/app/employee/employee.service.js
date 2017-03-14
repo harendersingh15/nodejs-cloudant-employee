@@ -77,7 +77,21 @@ let EmployeeService = class EmployeeService {
             return Observable_1.Observable.throw(error);
         });
     }
-    updateEmployee() {
+    updateEmployee(id, emp) {
+        if (emp) {
+            return this.http.put("/api/employee/employee/" + id, JSON.stringify({ "data": emp }), new http_1.RequestOptions({
+                headers: new http_1.Headers({ "Content-Type": "application/json" })
+            }))
+                .map(data => {
+                return data;
+            })
+                .catch((error) => {
+                console.log('error');
+                return Observable_1.Observable.throw(error);
+            });
+        }
+        else
+            return;
     }
 };
 EmployeeService = __decorate([

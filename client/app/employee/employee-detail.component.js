@@ -24,6 +24,15 @@ let EmployeeDetailComponent = class EmployeeDetailComponent {
             this.employee = employee;
         }, (error) => console.log(error));
     }
+    updatedEmployee(id) {
+        this.employeeService
+            .updateEmployee(id, this.employee)
+            .subscribe((res => {
+            window.alert('updated successfully!!!');
+        }), (error) => {
+            console.log(error);
+        });
+    }
 };
 EmployeeDetailComponent = __decorate([
     core_1.Component({
@@ -34,8 +43,16 @@ EmployeeDetailComponent = __decorate([
       <label>Name:
         <input [(ngModel)]="employee.name">
       </label>
+      <label>Mobile:
+         <input maxlength="10" [(ngModel)]="employee.mobile">
+      </label>
+      <label>Age:
+         <input [(ngModel)]="employee.age">
+      </label>   
     </div>
     <br>
+    <a href="javascript:void(0)" (click)="updatedEmployee(employee._id)">Save</a>|
+  
     <a routerLink="../">Employee List</a>
   `
     }),
